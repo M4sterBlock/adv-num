@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adivina el número</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            margin: 50px auto;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-container input {
+            flex: 1;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Adivina el número</h1>
+        <div>
+            <label for="languageSelect">Idioma:</label>
+            <select id="languageSelect" onchange="changeLanguage()">
+                <option value="es">Español</option>
+                <option value="en">English</option>
+                <option value="pt">Português</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="nl">Nederlands</option>
+                <option value="it">Italiano</option>
+            </select>
+        </div>
+        <div class="input-container">
+            <input type="number" id="userGuess" min="1" max="100">
+            <button onclick="checkGuess()" id="guessButton">Adivinar</button>
+        </div>
+        <p id="message"></p>
+        <p id="attemptsLeft"></p>
+        <button onclick="playAgain()" id="playAgainButton" style="display: none;">Jugar de nuevo</button>
+        <p id="timerInputContainer">
+            <span id="timerLabel">Tiempo del temporizador (segundos):</span>
+            <input type="number" id="timerInput" value="30">
+            <button onclick="startGame()" id="startButton">Iniciar juego</button>
+        </p>
+    </div>
+
+    <script>
+        let languageData = {
+            "es": {
+                "title": "Adivina el número",
+                "languageLabel": "Idioma:",
+                "guessButton": "Adivinar",
+                "playAgainButton": "Jugar de nuevo",
+                "startButton": "Iniciar juego",
+                "timerLabel": "Tiempo del temporizador (segundos):",
+                "timeUpMessage": "¡Tiempo agotado! Has perdido.",
+                "winMessage": "¡Adivinaste el número",
+                "loseMessage": "¡Se han agotado los intentos! El número correcto era",
+                "inputPlaceholder": "Introduce un número entre 1 y 100.",
+                "attemptsLeft": "Intentos restantes:",
+            },
+            "en": {
+                "title": "Guess the Number",
+                "languageLabel": "Language:",
+                "guessButton": "Guess",
+                "playAgainButton": "Play Again",
+                "startButton": "Start Game",
+                "timerLabel": "Timer (seconds):",
+                "timeUpMessage": "Time's up! You lost.",
+                "winMessage": "You guessed the number",
+                "loseMessage": "Out of attempts! The correct number was",
+                "inputPlaceholder": "Enter a number between 1 and 100.",
+                "attemptsLeft": "Attempts left:",
+            },
+            "pt": {
+                "title": "Adivinhe o Número",
+                "languageLabel": "Idioma:",
+                "guessButton": "Adivinhar",
+                "playAgainButton": "Jogar Novamente",
+                "startButton": "Iniciar Jogo",
+                "timerLabel": "Temporizador (segundos):",
+                "timeUpMessage": "Tempo esgotado! Você perdeu.",
+                "winMessage": "Você adivinhou o número",
+                "loseMessage": "Sem mais tentativas! O número correto era",
+                "inputPlaceholder": "Digite um número entre 1 e 100.",
+                "attemptsLeft": "Tentativas restantes:",
+            },
+            "fr": {
+                "title": "Devinez le Nombre",
+                "languageLabel": "Langue:",
+                "guessButton": "Devinez",
+                "playAgainButton": "Rejouer",
+                "startButton": "Démarrer le Jeu",
+                "timerLabel": "Minuteur (secondes):",
+                "timeUpMessage": "Temps écoulé! Vous avez perdu.",
+                "winMessage": "Vous avez deviné le nombre",
+                "loseMessage": "Plus d'essais! Le nombre correct était",
+                "inputPlaceholder": "Entrez un nombre entre 1 et 100.",
+                "attemptsLeft": "Essais restants:",
+            },
+            "de": {
+                "title": "Errate die Zahl",
+                "languageLabel": "Sprache:",
+                "guessButton": "Raten",
+                "playAgainButton": "Erneut spielen",
+                "startButton": "Spiel starten",
+                "timerLabel": "Timer (Sekunden):",
+                "timeUpMessage": "Zeit abgelaufen! Du hast verloren.",
+                "winMessage": "Du hast die Zahl erraten",
+                "loseMessage": "Keine Versuche mehr! Die richtige Zahl war",
+                "inputPlaceholder": "Gib eine Zahl zwischen 1 und 100 ein.",
+                "attemptsLeft": "Versuche übrig:",
+            },
+            "nl": {
+                "title": "Raad het Nummer",
+                "languageLabel": "Taal:",
+                "guessButton": "Raden",
+                "playAgainButton": "Opnieuw spelen",
+                "startButton": "Start spel",
+                "timerLabel": "Timer (seconden):",
+                "timeUpMessage": "Tijd is op! Je hebt verloren.",
+                "winMessage": "Je hebt het nummer geraden",
+                "loseMessage": "Geen pogingen meer! Het juiste nummer was",
+                "inputPlaceholder": "Voer een nummer tussen 1 en 100 in.",
+                "attemptsLeft": "Restende pogingen:",
+            },
+            "it": {
+                "title": "Indovina il Numero",
+                "languageLabel": "Lingua:",
+                "guessButton": "Indovina",
+                "playAgainButton": "Gioca di nuovo",
+                "startButton": "Inizia Gioco",
+                "timerLabel": "Timer (secondi):",
+                "timeUpMessage": "Tempo scaduto! Hai perso.",
+                "winMessage": "Hai indovinato il numero",
+                "loseMessage": "Finiti i tentativi! Il numero corretto era",
+                "inputPlaceholder": "Inserisci un numero tra 1 e 100.",
+                "attemptsLeft": "Tentativi rimanenti:",
+            }
+        };
+
+        let targetNumber, attempts, maxAttempts, timerInterval, timeLeft, currentLanguage;
+
+        function changeLanguage() {
+            currentLanguage = document.getElementById("languageSelect").value;
+            updateUIStrings();
+        }
+
+        function updateUIStrings() {
+            const languageStrings = languageData[currentLanguage];
+            document.title = languageStrings["title"];
+            document.querySelector("label[for='languageSelect']").textContent = languageStrings["languageLabel"];
+            document.getElementById("guessButton").textContent = languageStrings["guessButton"];
+            document.getElementById("playAgainButton").textContent = languageStrings["playAgainButton"];
+            document.getElementById("startButton").textContent = languageStrings["startButton"];
+            document.getElementById("timerLabel").textContent = languageStrings["timerLabel"];
+            document.getElementById("timeUpMessage").textContent = languageStrings["timeUpMessage"];
+            document.getElementById("winMessage").textContent = languageStrings["winMessage"];
+            document.getElementById("loseMessage").textContent = languageStrings["loseMessage"];
+            document.getElementById("inputPlaceholder").placeholder = languageStrings["inputPlaceholder"];
+            setAttemptsLeft();
+        }
+
+        function startGame() {
+            targetNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            maxAttempts = 10;
+            timeLeft = parseInt(document.getElementById("timerInput").value);
+            setMessage("");
+            setAttemptsLeft();
+            document.getElementById("timerInputContainer").style.display = "none";
+            document.getElementById("playAgainButton").style.display = "none";
+            document.getElementById("userGuess").disabled = false;
+            document.getElementById("userGuess").value = '';
+            document.getElementById("userGuess").focus();
+
+            // Iniciar temporizador
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                if (timeLeft >= 0) {
+                    document.getElementById("attemptsLeft").textContent = `${languageData[currentLanguage]["attemptsLeft"]} ${maxAttempts - attempts} | ${languageData[currentLanguage]["timerLabel"]} ${timeLeft}s`;
+                } else {
+                    clearInterval(timerInterval);
+                    setMessage(languageData[currentLanguage]["timeUpMessage"]);
+                    document.getElementById("userGuess").disabled = true;
+                    document.getElementById("playAgainButton").style.display = "block";
+                }
+            }, 1000);
+        }
+
+        function checkGuess() {
+            const userGuess = parseInt(document.getElementById("userGuess").value);
+
+            if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+                setMessage(languageData[currentLanguage]["inputPlaceholder"]);
+                return;
+            }
+
+            attempts++;
+
+            if (userGuess === targetNumber) {
+                clearInterval(timerInterval);
+                setMessage(`${languageData[currentLanguage]["winMessage"]} ${targetNumber} ${languageData[currentLanguage]["attemptsLeft"]} ${attempts} ${languageData[currentLanguage]["guessButton"]}`);
+                document.getElementById("userGuess").disabled = true;
+                document.getElementById("playAgainButton").style.display = "block";
+            } else if (attempts === maxAttempts) {
+                clearInterval(timerInterval);
+                setMessage(`${languageData[currentLanguage]["loseMessage"]} ${targetNumber}.`);
+                document.getElementById("userGuess").disabled = true;
+                document.getElementById("playAgainButton").style.display = "block";
+            } else if (userGuess < targetNumber) {
+                setMessage(languageData[currentLanguage]["guessButton"]);
+            } else {
+                setMessage(languageData[currentLanguage]["guessButton"]);
+            }
+            setAttemptsLeft();
+        }
+
+        function setMessage(msg) {
+            document.getElementById("message").textContent = msg;
+        }
+
+        function setAttemptsLeft() {
+            document.getElementById("attemptsLeft").textContent = `${languageData[currentLanguage]["attemptsLeft"]} ${maxAttempts - attempts} | ${languageData[currentLanguage]["timerLabel"]} ${timeLeft}s`;
+        }
+
+        function playAgain() {
+            clearInterval(timerInterval);
+            document.getElementById("timerInputContainer").style.display = "block";
+            document.getElementById("userGuess").disabled = false;
+            startGame();
+        }
+
+        changeLanguage();
+    </script>
+</body>
+</html>
